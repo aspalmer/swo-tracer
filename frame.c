@@ -81,6 +81,8 @@ ssize_t read_frame(int fd)
                 offs += handle_packet(buf, offs, nr);
             }
         } while (running && offs < nr);
+    } else {
+    fprintf(stderr, "sad boys\n");
     }
 
     return nr;

@@ -14,7 +14,14 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h> 
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
@@ -31,7 +38,7 @@
 
 const char *usage_str = "usage: %s [-t] <trace_path>\n";
 int running = 1;
-
+/*
 static void handle_signal(int sig)
 {
 	if (sig == SIGINT)
@@ -56,39 +63,50 @@ static int check_event(int fd)
 
 	return select(FD_SETSIZE, &rfds, NULL, NULL, NULL);
 }
-
+*/
 int main(int argc, char **argv)
 {
-	int opt;
-	int fd;
 	int fd_d;
 	int ret = 0;
-	int flags = O_RDONLY;
 
-	setvbuf(stdout, NULL, _IONBF, 0);
+  setvbuf(stdout, NULL, _IONBF, 0);
+  setvbuf(stderr, NULL, _IONBF, 0);
 
-	while ((opt = getopt(argc, argv, "t")) != -1) {
-		switch (opt) {
-			case 't':
-				flags = (O_RDWR | O_TRUNC);
-				break;
+  int portno;
+  struct sockaddr_in serv_addr;
+  struct hostent *server;
 
-			default:
-				fprintf(stderr, usage_str, argv[0]);
-				exit(EXIT_FAILURE);
-		}
-	}
+  if (argc < 3) {
+    fprintf(stdout,"usage %s hostname port\n", argv[0]);
+    exit(0);
+  }
+  portno = atoi(argv[2]);
+  fd_d = socket(AF_INET, SOCK_STREAM, 0);
+  if (fd_d < 0) 
+    fprintf(stdout, "ERROR opening socket");
+  server = gethostbyname(argv[1]);
+  if (server == NULL) {
+    fprintf(stdout,"ERROR, no such host\n");
+    exit(0);
+  }
+  bzero((char *) &serv_addr, sizeof(serv_addr));
+  serv_addr.sin_family = AF_INET;
+  bcopy((char *)server->h_addr, 
+      (char *)&serv_addr.sin_addr.s_addr,
+      server->h_length);
+  serv_addr.sin_port = htons(portno);
+  if (connect(fd_d,(struct sockaddr *) &serv_addr,sizeof(serv_addr)) < 0) 
+    fprintf(stdout, "ERROR connecting");
+//
+//	fd_d = open(argv[optind], flags);
 
-	if (optind >= argc) {
-		fprintf(stderr, usage_str, argv[0]);
-		exit(EXIT_FAILURE);
-	}
-
-	fd_d = open(argv[optind], flags);
-
-	if (!(flags & O_TRUNC))
-		while (read_frame(fd_d) > 0);
-
+  //	if (!(flags & O_TRUNC))
+    fprintf(stdout, "yolo\n");
+  while ( 1) {
+    read_frame(fd_d);
+    fprintf(stdout, "yolo\n");
+  };
+/*
 	fd = inotify_init();
 
 	if (fd >= 0 && fd_d >= 0) {
@@ -109,14 +127,14 @@ int main(int argc, char **argv)
 				break;
 		}
 
-		fprintf(stderr, " Exiting..\n");
+		fprintf(stdout, " Exiting..\n");
 
 		close(fd_d);
 		inotify_rm_watch(fd, wd);
 	} else {
-		fprintf(stderr, "unable to open \"%s\" for reading\n", argv[optind]);
+		fprintf(stdout, "unable to open \"%s\" for reading\n", argv[optind]);
 		ret = EXIT_FAILURE;
 	}
-
+*/
 	return ret;
 }
