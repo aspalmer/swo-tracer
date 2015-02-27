@@ -102,9 +102,8 @@ int main(int argc, char **argv)
 
   //	if (!(flags & O_TRUNC))
     fprintf(stdout, "yolo\n");
-  while ( 1) {
-    read_frame(fd_d);
-    fprintf(stdout, "yolo\n");
+  while ( read_frame(fd_d) > 0) {
+    ;
   };
 /*
 	fd = inotify_init();

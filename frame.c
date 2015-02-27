@@ -64,7 +64,7 @@ static size_t handle_packet(uint8_t *buf, unsigned int offs, ssize_t nr)
 
 ssize_t read_frame(int fd)
 {
-    unsigned char buf[512];
+    unsigned char buf[32];
     ssize_t nr;
 
     nr = read(fd, buf, sizeof(buf));
@@ -83,6 +83,7 @@ ssize_t read_frame(int fd)
         } while (running && offs < nr);
     } else {
     fprintf(stderr, "sad boys\n");
+    return -1;
     }
 
     return nr;
